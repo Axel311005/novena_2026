@@ -89,6 +89,10 @@ export default function ScannerPage() {
   });
 
   const activeDay = config?.diaActivo || 1;
+  const activeDayRef = useRef(activeDay);
+  activeDayRef.current = activeDay;
+
+  const handleQrDetectedRef = useRef<(code: string) => void>(() => {});
 
   const scanMutation = useMutation({
     mutationFn: scanQrAsistencia,
@@ -151,10 +155,12 @@ export default function ScannerPage() {
         // Ignorar si el navegador no soporta pause
       }
 
+      const targetDay = activeDayRef.current || 1;
+
       scanMutation.mutate(
         {
           qrCode: cleanCode,
-          dia: activeDay,
+          dia: targetDay,
         },
         {
           onSettled: () => {
@@ -176,8 +182,10 @@ export default function ScannerPage() {
         }
       );
     },
-    [scanMutation, activeDay]
+    [scanMutation]
   );
+
+  handleQrDetectedRef.current = handleQrDetected;
 
   const stopCamera = async () => {
     if (isTransitioningRef.current) return;
@@ -229,7 +237,7 @@ export default function ScannerPage() {
         await scannerRef.current.start(
           { facingMode: 'environment' },
           qrConfig,
-          (decodedText) => handleQrDetected(decodedText),
+          (decodedText) => handleQrDetectedRef.current(decodedText),
           () => {}
         );
       } catch (rearErr) {
@@ -237,7 +245,7 @@ export default function ScannerPage() {
         await scannerRef.current.start(
           { facingMode: 'user' },
           qrConfig,
-          (decodedText) => handleQrDetected(decodedText),
+          (decodedText) => handleQrDetectedRef.current(decodedText),
           () => {}
         );
       }
@@ -275,10 +283,10 @@ export default function ScannerPage() {
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualCode.trim()) return;
+    if (!manualCode.trim() || scanMutation.isPending) return;
     scanMutation.mutate({
       qrCode: manualCode.trim(),
-      dia: activeDay,
+      dia: activeDayRef.current || 1,
     });
     setManualCode('');
   };
