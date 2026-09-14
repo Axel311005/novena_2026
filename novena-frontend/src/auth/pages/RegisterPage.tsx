@@ -189,6 +189,7 @@ export default function RegisterPage() {
                 <div className="relative">
                   <input
                     type="email"
+                    autoComplete="username"
                     {...register('email', {
                       required: 'El correo electrónico es requerido',
                       pattern: {
@@ -216,6 +217,7 @@ export default function RegisterPage() {
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     {...register('password', {
                       required: 'La contraseña es requerida',
                       minLength: {
@@ -254,6 +256,7 @@ export default function RegisterPage() {
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     {...register('confirmPassword', {
                       required: 'Por favor confirma tu contraseña',
                       validate: (value) =>

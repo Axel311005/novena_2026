@@ -3,11 +3,20 @@ import { registerAxiosInstance } from './interceptors';
 
 const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_URL;
-  // Si se accede desde un móvil u otra IP en la red local
-  if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost') {
-    return `http://${window.location.hostname}:3000`;
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '');
   }
-  return envUrl || 'http://localhost:3000';
+
+  // Fallback para desarrollo en red local (IPs privadas numéricas)
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    const host = window.location.hostname;
+    const isLocalIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(host) && host !== '127.0.0.1';
+    if (isLocalIp) {
+      return `http://${host}:3000`;
+    }
+  }
+
+  return 'http://localhost:3000';
 };
 
 const BASE_URL = getBaseURL();

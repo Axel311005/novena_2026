@@ -9,6 +9,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  VITE_API_URL = "https://novena-2026.onrender.com"
 
 # Headers para mejorar el caching
 # IMPORTANTE: El HTML NO debe cachearse para evitar problemas con chunks obsoletos
