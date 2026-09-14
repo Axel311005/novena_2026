@@ -2,6 +2,8 @@ export type Sexo = 'masculino' | 'femenino';
 
 export interface Nino {
   id: number;
+  codigo?: string | null;
+  qrCodeToken?: string | null;
   primerNombre: string | null;
   segundoNombre?: string | null;
   primerApellido: string | null;

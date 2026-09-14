@@ -1,0 +1,20 @@
+{
+  "name": "novena-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo para el sistema de novena (backend y frontend)",
+  "workspaces": [
+    "novena_backend",
+    "novena-frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"blue.bold,green.bold\" \"npm run dev --workspace=novena\" \"npm run dev --workspace=novena-frontend\"",
+    "dev:backend": "npm run dev --workspace=novena",
+    "dev:frontend": "npm run dev --workspace=novena-frontend",
+    "build": "npm run build --workspace=novena && npm run build --workspace=novena-frontend",
+    "start": "npm run start:prod --workspace=novena"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

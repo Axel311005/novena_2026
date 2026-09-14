@@ -82,7 +82,7 @@ export default function ReportsPage() {
             <Button
               onClick={handleDownloadPdf}
               disabled={downloadingPdf || downloadingExcel}
-              className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+              className="w-full bg-red-600 hover:bg-red-700 text-white"
             >
               {downloadingPdf ? (
                 <>
@@ -121,7 +121,7 @@ export default function ReportsPage() {
             <Button
               onClick={handleDownloadExcel}
               disabled={downloadingPdf || downloadingExcel}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {downloadingExcel ? (
                 <>

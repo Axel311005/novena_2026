@@ -8,10 +8,12 @@ import { KidModule } from './kid/kid.module';
 import { AsistenciaModule } from './asistencia/asistencia.module';
 import { ReportsModule } from './reports/reports.module';
 import { StatsModule } from './stats/stats.module';
+import { ConfiguracionModule } from './configuracion/configuracion.module';
 import { User } from './auth/entities/user.entity';
 import { LoginAttempt } from './auth/entities/login-attempt.entity';
 import { Kid } from './kid/entities/kid.entity';
 import { Asistencia } from './asistencia/entities/asistencia.entity';
+import { Configuracion } from './configuracion/entities/configuracion.entity';
 
 @Module({
   imports: [
@@ -33,7 +35,7 @@ import { Asistencia } from './asistencia/entities/asistencia.entity';
           username: process.env.DB_USERNAME,
           password: process.env.DB_PASSWORD,
           database: process.env.DB_NAME,
-          entities: [User, LoginAttempt, Kid, Asistencia],
+          entities: [User, LoginAttempt, Kid, Asistencia, Configuracion],
           synchronize: true, // Siempre habilitado
           ssl: isProd,
           extra: {
@@ -51,6 +53,7 @@ import { Asistencia } from './asistencia/entities/asistencia.entity';
     AsistenciaModule,
     ReportsModule,
     StatsModule,
+    ConfiguracionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

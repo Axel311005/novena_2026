@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaSnowflake } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaSnowflake, FaQrcode } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { getNinos, deleteNino } from '../actions';
 import { useAuthStore } from '@/auth/store/auth.store';
@@ -21,6 +21,7 @@ import {
   TableRow,
 } from '@/shared/components/ui/table';
 import { NinoForm } from '../components/NinoForm';
+import { KidQrModal } from '../components/KidQrModal';
 import type { Nino } from '../types/nino.interface';
 import { useTablePagination } from '@/shared/hooks/useTablePagination';
 import { useDebounce } from '@/shared/hooks/useDebounce';
@@ -30,6 +31,7 @@ import type { PaginatedResponse } from '@/shared/types/pagination';
 export default function NinosPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedNino, setSelectedNino] = useState<Nino | null>(null);
+  const [qrModalNino, setQrModalNino] = useState<Nino | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const isAdmin = user?.roles.includes('admin') ?? false;
@@ -145,7 +147,7 @@ export default function NinosPage() {
         </div>
         <Button
           onClick={() => setIsFormOpen(true)}
-          className="bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+          className="bg-orange-500 hover:bg-orange-600 text-white"
         >
           <FaPlus className="w-5 h-5 mr-2" />
           Agregar
@@ -201,7 +203,7 @@ export default function NinosPage() {
               {!pagination.searchQuery && (
                 <Button
                   onClick={() => setIsFormOpen(true)}
-                  className="mt-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                  className="mt-6 bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   <FaPlus className="w-5 h-5 mr-2" />
                   Agregar Primer Niño
@@ -214,6 +216,7 @@ export default function NinosPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-28">Código</TableHead>
                       <TableHead>Nombre Completo</TableHead>
                       <TableHead>Edad</TableHead>
                       <TableHead>Sexo</TableHead>
@@ -223,6 +226,15 @@ export default function NinosPage() {
                   <TableBody>
                     {ninos.map((nino) => (
                       <TableRow key={nino.id}>
+                        <TableCell>
+                          {nino.codigo ? (
+                            <span className="inline-block px-2 py-0.5 text-xs font-bold font-mono bg-orange-50 text-orange-700 border border-orange-200 rounded">
+                              {nino.codigo}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </TableCell>
                         <TableCell className="font-medium">
                           {[
                             nino.primerNombre,
@@ -246,7 +258,17 @@ export default function NinosPage() {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => setQrModalNino(nino)}
+                              className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                              title="Ver / Imprimir Carnet QR"
+                            >
+                              <FaQrcode className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleEdit(nino)}
+                              title="Editar"
                             >
                               <FaEdit className="w-4 h-4" />
                             </Button>
@@ -255,6 +277,7 @@ export default function NinosPage() {
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => handleDelete(nino.id)}
+                                title="Eliminar"
                               >
                                 <FaTrash className="w-4 h-4" />
                               </Button>
@@ -286,6 +309,13 @@ export default function NinosPage() {
           nino={selectedNino}
           onClose={handleCloseForm}
           onSuccess={handleCloseForm}
+        />
+      )}
+
+      {qrModalNino && (
+        <KidQrModal
+          nino={qrModalNino}
+          onClose={() => setQrModalNino(null)}
         />
       )}
     </div>

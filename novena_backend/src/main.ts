@@ -27,21 +27,23 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // En desarrollo, permitir todos los localhost
-      if (!isProd && origin && origin.startsWith('http://localhost:')) {
+      // Permitir requests sin origin (mobile apps, Postman, etc.)
+      if (!origin) {
         return callback(null, true);
       }
 
-      // Permitir requests sin origin (mobile apps, Postman, etc.) solo en desarrollo
-      if (!origin && !isProd) {
+      // Permitir localhost, 127.0.0.1 y cualquier IP de red local LAN (192.168.x.x, 10.x.x.x, 172.x.x.x)
+      const isLocalOrLan =
+        /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(
+          origin
+        );
+
+      if (isLocalOrLan || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('No permitido por CORS'));
-      }
+      logger.warn(`Origen bloqueado por CORS: ${origin}`);
+      callback(new Error('No permitido por CORS'));
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -123,6 +125,7 @@ async function bootstrap() {
     },
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Aplicación corriendo en puerto ${port} (0.0.0.0)`);
 }
 bootstrap();

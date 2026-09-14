@@ -44,3 +44,18 @@ export interface UpdateAsistenciaDto {
   day9?: boolean;
 }
 
+export interface ScanQrDto {
+  qrCode: string;
+  dia?: number;
+}
+
+export interface ScanQrResponse {
+  status: 'registrado' | 'ya_registrado';
+  message: string;
+  kid: Nino;
+  asistencia: Asistencia;
+  dia: number;
+  diasAsistidos: number;
+}
+
+

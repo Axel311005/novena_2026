@@ -27,7 +27,7 @@ export default function UsersPage() {
         </div>
         <Button
           onClick={() => setIsFormOpen(true)}
-          className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+          className="bg-orange-500 hover:bg-orange-600 text-white"
         >
           <FaPlus className="w-5 h-5 mr-2" />
           Crear Usuario
@@ -48,7 +48,7 @@ export default function UsersPage() {
           </p>
           <Button
             onClick={() => setIsFormOpen(true)}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+            className="bg-orange-500 hover:bg-orange-600 text-white"
           >
             <FaPlus className="w-5 h-5 mr-2" />
             Crear Usuario

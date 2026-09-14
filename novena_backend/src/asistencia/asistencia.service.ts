@@ -7,9 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Asistencia } from './entities/asistencia.entity';
-import { CreateAsistenciaDto, UpdateAsistenciaDto } from './dto';
+import { CreateAsistenciaDto, UpdateAsistenciaDto, ScanQrDto } from './dto';
 import { User } from '../auth/entities/user.entity';
 import { Kid } from '../kid/entities/kid.entity';
+import { ConfiguracionService } from '../configuracion/configuracion.service';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 @Injectable()
@@ -21,7 +22,126 @@ export class AsistenciaService {
     private readonly asistenciaRepository: Repository<Asistencia>,
     @InjectRepository(Kid)
     private readonly kidRepository: Repository<Kid>,
+    private readonly configuracionService: ConfiguracionService,
   ) {}
+
+  private calculateTotalDias(asistencia: Asistencia): number {
+    return [
+      asistencia.day1,
+      asistencia.day2,
+      asistencia.day3,
+      asistencia.day4,
+      asistencia.day5,
+      asistencia.day6,
+      asistencia.day7,
+      asistencia.day8,
+      asistencia.day9,
+    ].filter(Boolean).length;
+  }
+
+  private getKidFullName(kid: Kid): string {
+    return (
+      [
+        kid.primerNombre,
+        kid.segundoNombre,
+        kid.primerApellido,
+        kid.segundoApellido,
+      ]
+        .filter(Boolean)
+        .join(' ') || `Niño #${kid.id}`
+    );
+  }
+
+  async scanQr(
+    scanQrDto: ScanQrDto,
+    user: User,
+  ): Promise<{
+    status: 'registrado' | 'ya_registrado';
+    message: string;
+    kid: Kid;
+    asistencia: Asistencia;
+    dia: number;
+    diasAsistidos: number;
+  }> {
+    const rawQr = scanQrDto.qrCode?.trim();
+    if (!rawQr) {
+      throw new BadRequestException('Código QR requerido');
+    }
+
+    // Determinar día
+    let targetDay = scanQrDto.dia;
+    if (!targetDay) {
+      const config = await this.configuracionService.getConfiguracion();
+      targetDay = config.diaActivo;
+    }
+
+    if (targetDay < 1 || targetDay > 9) {
+      throw new BadRequestException('El día debe ser entre 1 y 9');
+    }
+
+    // Buscar niño por token de QR, por código o por ID
+    let kid = await this.kidRepository.findOne({
+      where: [{ qrCodeToken: rawQr }, { codigo: rawQr }],
+      relations: ['asistencia', 'createdBy'],
+    });
+
+    if (!kid && !isNaN(Number(rawQr))) {
+      kid = await this.kidRepository.findOne({
+        where: { id: Number(rawQr) },
+        relations: ['asistencia', 'createdBy'],
+      });
+    }
+
+    if (!kid) {
+      throw new NotFoundException(
+        `No se encontró ningún niño con el código "${rawQr}"`,
+      );
+    }
+
+    // Obtener o crear registro de asistencia
+    let asistencia = kid.asistencia;
+    if (!asistencia) {
+      asistencia = this.asistenciaRepository.create({
+        kid,
+        createdBy: user,
+      });
+      asistencia = await this.asistenciaRepository.save(asistencia);
+      kid.asistencia = asistencia;
+    }
+
+    const dayProp = `day${targetDay}` as keyof Asistencia;
+    const yaEstabaRegistrado = Boolean(asistencia[dayProp]);
+
+    if (yaEstabaRegistrado) {
+      const diasAsistidos = this.calculateTotalDias(asistencia);
+      const nombreCompleto = this.getKidFullName(kid);
+      return {
+        status: 'ya_registrado',
+        message: `${nombreCompleto} ya tenía registrada la asistencia del Día ${targetDay}.`,
+        kid,
+        asistencia,
+        dia: targetDay,
+        diasAsistidos,
+      };
+    }
+
+    // Marcar asistencia para el día seleccionado
+    (asistencia as any)[dayProp] = true;
+    asistencia.updatedBy = user;
+    asistencia = await this.asistenciaRepository.save(asistencia);
+
+    const diasAsistidos = this.calculateTotalDias(asistencia);
+    const nombreCompleto = this.getKidFullName(kid);
+
+    return {
+      status: 'registrado',
+      message: `¡Asistencia del Día ${targetDay} registrada con éxito para ${nombreCompleto}!`,
+      kid,
+      asistencia,
+      dia: targetDay,
+      diasAsistidos,
+    };
+  }
 
   async create(
     createAsistenciaDto: CreateAsistenciaDto,

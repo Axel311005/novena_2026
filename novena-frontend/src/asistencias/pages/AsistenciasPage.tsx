@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
 import {
   FaPlus,
   FaEdit,
@@ -9,11 +10,13 @@ import {
   FaSearch,
   FaBell,
   FaTree,
+  FaQrcode,
 } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { getAsistencias, deleteAsistencia } from '../actions';
 import { getNinos } from '@/ninos/actions';
 import { useAuthStore } from '@/auth/store/auth.store';
+import { ActiveDaySelector } from '@/configuracion/components/ActiveDaySelector';
 import {
   Card,
   CardContent,
@@ -38,6 +41,7 @@ import { PaginationControls } from '@/shared/components/PaginationControls';
 import type { PaginatedResponse } from '@/shared/types/pagination';
 
 export default function AsistenciasPage() {
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedAsistencia, setSelectedAsistencia] =
     useState<Asistencia | null>(null);
@@ -240,7 +244,7 @@ export default function AsistenciasPage() {
             </p>
             <Button
               onClick={() => (window.location.href = '/admin/ninos')}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Ir a Gestión de Niños
             </Button>
@@ -253,7 +257,7 @@ export default function AsistenciasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Control de Asistencias
@@ -262,13 +266,24 @@ export default function AsistenciasPage() {
             Registra y gestiona las asistencias de los niños
           </p>
         </div>
-        <Button
-          onClick={() => setIsFormOpen(true)}
-          className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-        >
-          <FaPlus className="w-5 h-5 mr-2" />
-          Registrar Asistencia
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <ActiveDaySelector />
+          <Button
+            onClick={() => navigate('/admin/asistencias/escanear')}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-xs"
+          >
+            <FaQrcode className="w-4 h-4 mr-2" />
+            Escanear QR
+          </Button>
+          <Button
+            onClick={() => setIsFormOpen(true)}
+            variant="outline"
+            className="border-gray-300"
+          >
+            <FaPlus className="w-4 h-4 mr-2" />
+            Manual
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -318,7 +333,7 @@ export default function AsistenciasPage() {
               {!pagination.searchQuery && (
                 <Button
                   onClick={() => setIsFormOpen(true)}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   <FaPlus className="w-5 h-5 mr-2" />
                   Registrar Primera Asistencia
@@ -363,7 +378,7 @@ export default function AsistenciasPage() {
                                 ]
                                   .filter(Boolean)
                                   .join(' ') || 'Sin nombre'
-                              : `ID: ${asistencia.kidId}`}
+                              : 'Sin nombre'}
                           </TableCell>
                           <TableCell className="text-center">
                             {nino ? (

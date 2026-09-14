@@ -9,9 +9,12 @@ import {
   FaSnowflake,
   FaTree,
   FaBell,
+  FaQrcode,
+  FaIdCard,
 } from 'react-icons/fa';
 import { Button } from '../ui/button';
 import { Logo } from '../Logo';
+import { ActiveDaySelector } from '@/configuracion/components/ActiveDaySelector';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -85,9 +88,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <FaBell className="w-5 h-5 shrink-0 text-yellow-500" />
               {sidebarOpen && <span>Control de Asistencias</span>}
             </button>
+            <button
+              onClick={() => navigate('/admin/asistencias/escanear')}
+              className={`w-full flex items-center rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors ${
+                sidebarOpen ? 'gap-3 px-4 py-3' : 'justify-center p-3'
+              }`}
+            >
+              <FaQrcode className="w-5 h-5 shrink-0 text-orange-500" />
+              {sidebarOpen && <span>Escanear QR</span>}
+            </button>
             {user?.roles.includes('admin') && (
               <>
                 <div className="border-t border-gray-200 my-2" />
+                <button
+                  onClick={() => navigate('/admin/carnets')}
+                  className={`w-full flex items-center rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors ${
+                    sidebarOpen ? 'gap-3 px-4 py-3' : 'justify-center p-3'
+                  }`}
+                >
+                  <FaIdCard className="w-5 h-5 shrink-0 text-orange-500" />
+                  {sidebarOpen && <span>Imprimir Carnets</span>}
+                </button>
                 <button
                   onClick={() => navigate('/admin/reportes')}
                   className={`w-full flex items-center rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors ${
@@ -176,9 +197,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <FaBell className="w-5 h-5 shrink-0 text-yellow-500" />
                 <span>Control de Asistencias</span>
               </button>
+              <button
+                onClick={() => {
+                  navigate('/admin/asistencias/escanear');
+                  setMobileDrawerOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+              >
+                <FaQrcode className="w-5 h-5 shrink-0 text-orange-500" />
+                <span>Escanear QR</span>
+              </button>
               {user?.roles.includes('admin') && (
                 <>
                   <div className="border-t border-gray-200 my-2" />
+                  <button
+                    onClick={() => {
+                      navigate('/admin/carnets');
+                      setMobileDrawerOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                  >
+                    <FaIdCard className="w-5 h-5 shrink-0 text-orange-500" />
+                    <span>Imprimir Carnets</span>
+                  </button>
                   <button
                     onClick={() => {
                       navigate('/admin/reportes');
@@ -247,7 +288,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               Novena del Niño Dios
             </h2>
           </div>
-          <div className="w-10" />
+          <div className="flex items-center gap-2">
+            <ActiveDaySelector compact={true} />
+          </div>
         </header>
 
         {/* Content */}

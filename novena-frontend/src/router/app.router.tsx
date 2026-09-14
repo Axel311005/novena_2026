@@ -11,8 +11,14 @@ const NinosPage = lazy(() => import('../ninos/pages/NinosPage'));
 const AsistenciasPage = lazy(
   () => import('../asistencias/pages/AsistenciasPage')
 );
+const ScannerPage = lazy(
+  () => import('../asistencias/pages/ScannerPage')
+);
 const ReportsPage = lazy(() => import('../reports/pages/ReportsPage'));
 const UsersPage = lazy(() => import('../users/pages/UsersPage'));
+const PrintCarnetsPage = lazy(
+  () => import('../ninos/pages/PrintCarnetsPage')
+);
 
 // Componente de carga
 const LoadingFallback = () => (
@@ -69,6 +75,18 @@ export const router = createBrowserRouter([
       {
         path: 'asistencias',
         element: <AsistenciasPage />,
+      },
+      {
+        path: 'asistencias/escanear',
+        element: <ScannerPage />,
+      },
+      {
+        path: 'carnets',
+        element: (
+          <ProtectedRoute requiredRoles={['admin']}>
+            <PrintCarnetsPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'reportes',

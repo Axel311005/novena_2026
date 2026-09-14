@@ -62,6 +62,11 @@ export const ninoApi = {
     return data;
   },
 
+  getCarnets: async (params?: { soloNuevos?: boolean; q?: string }): Promise<Nino[]> => {
+    const { data } = await novenaApi.get<Nino[]>('/kids/carnets', { params });
+    return data;
+  },
+
   delete: async (id: number): Promise<void> => {
     await novenaApi.delete(`/kids/${id}`);
   },

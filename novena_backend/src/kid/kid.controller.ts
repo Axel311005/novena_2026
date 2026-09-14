@@ -39,7 +39,20 @@ export class KidController {
   })
   findAll(@Query() paginationDto: PaginationQueryDto) {
     return this.kidService.findAll(paginationDto);
-  } 
+  }
+
+  @Get('carnets')
+  @Auth(ValidRoles.admin)
+  @ApiOperation({ summary: 'Obtener lista de niños para impresión de carnets (Solo Admin)' })
+  findForCarnets(
+    @Query('soloNuevos') soloNuevos?: string,
+    @Query('q') q?: string,
+  ) {
+    return this.kidService.findForCarnets({
+      soloNuevos: soloNuevos === 'true',
+      q,
+    });
+  }
 
   @Get(':id')
   @Auth(ValidRoles.admin, ValidRoles.apuntador)

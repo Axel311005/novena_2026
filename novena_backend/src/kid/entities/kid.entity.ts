@@ -18,6 +18,12 @@ export class Kid {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', unique: true, nullable: true })
+  codigo: string | null;
+
+  @Column({ type: 'varchar', unique: true, nullable: true, name: 'qr_code_token' })
+  qrCodeToken: string | null;
+
   @Column({ type: 'varchar', nullable: true, default: null })
   primerNombre: string | null;
 

@@ -1,5 +1,11 @@
 import { novenaApi } from '@/shared/api/novenaApi';
-import type { Asistencia, CreateAsistenciaDto, UpdateAsistenciaDto } from '../types/asistencia.interface';
+import type {
+  Asistencia,
+  CreateAsistenciaDto,
+  UpdateAsistenciaDto,
+  ScanQrDto,
+  ScanQrResponse,
+} from '../types/asistencia.interface';
 import type { PaginatedResponse } from '@/shared/types/pagination';
 
 export interface GetAsistenciasParams {
@@ -68,6 +74,14 @@ export const asistenciaApi = {
     return data;
   },
 
+  scanQr: async (scanDto: ScanQrDto): Promise<ScanQrResponse> => {
+    const { data } = await novenaApi.post<ScanQrResponse>(
+      '/asistencias/scan-qr',
+      scanDto
+    );
+    return data;
+  },
+
   create: async (asistencia: CreateAsistenciaDto): Promise<Asistencia> => {
     const { data } = await novenaApi.post<Asistencia>('/asistencias', asistencia);
     return data;
@@ -82,4 +96,5 @@ export const asistenciaApi = {
     await novenaApi.delete(`/asistencias/${id}`);
   },
 };
+
 

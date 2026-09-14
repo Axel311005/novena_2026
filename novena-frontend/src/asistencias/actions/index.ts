@@ -5,4 +5,5 @@ export * from './getAsistenciasByFecha';
 export * from './createAsistencia';
 export * from './updateAsistencia';
 export * from './deleteAsistencia';
+export * from './scanQrAsistencia';
 

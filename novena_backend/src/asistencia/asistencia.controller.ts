@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AsistenciaService } from './asistencia.service';
-import { CreateAsistenciaDto, UpdateAsistenciaDto } from './dto';
+import { CreateAsistenciaDto, UpdateAsistenciaDto, ScanQrDto } from './dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { User } from '../auth/entities/user.entity';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
@@ -23,6 +23,20 @@ import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 @ApiBearerAuth('JWT-auth')
 export class AsistenciaController {
   constructor(private readonly asistenciaService: AsistenciaService) {}
+
+  @Post('scan-qr')
+  @Auth(ValidRoles.admin, ValidRoles.apuntador)
+  @ApiOperation({ summary: 'Registrar asistencia escaneando código QR o ingresando código de niño' })
+  @ApiResponse({
+    status: 200,
+    description: 'Asistencia registrada o ya existente',
+  })
+  scanQr(
+    @Body() scanQrDto: ScanQrDto,
+    @GetUser() user: User,
+  ) {
+    return this.asistenciaService.scanQr(scanQrDto, user);
+  }
 
   @Post()
   @Auth(ValidRoles.admin, ValidRoles.apuntador)
