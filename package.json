@@ -19,6 +19,10 @@
   "devDependencies": {
     "concurrently": "^9.1.2"
   },
+  "overrides": {
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
+  },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.63.2",
     "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3",
