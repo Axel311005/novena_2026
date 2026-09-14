@@ -19,10 +19,10 @@ async function bootstrap() {
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5175',
+    'https://novena2026.netlify.app',
     'https://novena-sma.netlify.app',
     `http://localhost:${port}`, // Permitir el mismo servidor (para Swagger)
-    // Agregar aquí otros orígenes permitidos en producción
-    // 'https://tudominio.com',
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : []),
   ];
 
   app.enableCors({
@@ -38,7 +38,10 @@ async function bootstrap() {
           origin
         );
 
-      if (isLocalOrLan || allowedOrigins.includes(origin)) {
+      // Permitir subdominios de netlify.app y onrender.com
+      const isNetlifyOrRender = /^https:\/\/[a-zA-Z0-9-]+\.(netlify\.app|onrender\.com)$/.test(origin);
+
+      if (isLocalOrLan || isNetlifyOrRender || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 

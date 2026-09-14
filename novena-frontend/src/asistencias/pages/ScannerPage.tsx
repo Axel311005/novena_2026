@@ -69,10 +69,14 @@ export default function ScannerPage() {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isTransitioningRef = useRef(false);
   const mountedRef = useRef(true);
+  const lastScannedCodeRef = useRef<string | null>(null);
+  const lastScannedTimeRef = useRef<number>(0);
+  const isProcessingRef = useRef(false);
 
   const [activeTab, setActiveTab] = useState<'camera' | 'manual'>('camera');
   const [cameraActive, setCameraActive] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isScanningPaused, setIsScanningPaused] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -115,14 +119,62 @@ export default function ScannerPage() {
 
   const handleQrDetected = useCallback(
     (decodedText: string) => {
-      if (scanMutation.isPending) return;
       const cleanCode = decodedText.trim();
       if (!cleanCode) return;
 
-      scanMutation.mutate({
-        qrCode: cleanCode,
-        dia: activeDay,
-      });
+      const now = Date.now();
+
+      // Evitar lecturas múltiples si ya se está procesando
+      if (isProcessingRef.current || scanMutation.isPending) return;
+
+      // Si es el mismo código escaneado hace menos de 4 segundos, ignorar
+      if (lastScannedCodeRef.current === cleanCode && now - lastScannedTimeRef.current < 4000) {
+        return;
+      }
+
+      // Cooldown general de 1.5s entre cualquier código
+      if (now - lastScannedTimeRef.current < 1500) {
+        return;
+      }
+
+      isProcessingRef.current = true;
+      lastScannedCodeRef.current = cleanCode;
+      lastScannedTimeRef.current = now;
+      setIsScanningPaused(true);
+
+      // Pausar decodificador temporalmente mientras se procesa
+      try {
+        if (scannerRef.current && scannerRef.current.isScanning) {
+          scannerRef.current.pause(true);
+        }
+      } catch (e) {
+        // Ignorar si el navegador no soporta pause
+      }
+
+      scanMutation.mutate(
+        {
+          qrCode: cleanCode,
+          dia: activeDay,
+        },
+        {
+          onSettled: () => {
+            // Reanudar después de 2.2 segundos para dar tiempo a retirar el carnet
+            setTimeout(() => {
+              isProcessingRef.current = false;
+              if (mountedRef.current) {
+                setIsScanningPaused(false);
+              }
+              try {
+                if (scannerRef.current && scannerRef.current.isScanning) {
+                  scannerRef.current.resume();
+                }
+              } catch (e) {
+                // Ignorar
+              }
+            }, 2200);
+          },
+        }
+      );
     },
     [scanMutation, activeDay]
   );
@@ -353,6 +405,16 @@ export default function ScannerPage() {
                     id="qr-reader"
                     className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full"
                   />
+
+                  {isScanningPaused && !cameraError && (
+                    <div className="absolute inset-0 bg-emerald-950/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-white z-10 pointer-events-none transition-all">
+                      <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center mb-2 text-white shadow-xl animate-bounce">
+                        <FaCheckCircle className="w-8 h-8" />
+                      </div>
+                      <p className="text-sm font-bold text-white tracking-wide">¡QR Procesado!</p>
+                      <p className="text-[11px] text-emerald-200 mt-0.5">Listo para el siguiente carnet...</p>
+                    </div>
+                  )}
 
                   {isInitializing && !cameraActive && !cameraError && (
                     <div className="absolute inset-0 bg-gray-900/80 flex flex-col items-center justify-center text-white gap-2 z-10">
