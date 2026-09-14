@@ -1,7 +1,7 @@
 [build]
   base = "novena-frontend"
   command = "npm run build"
-  publish = "novena-frontend/dist"
+  publish = "dist"
 
 [[redirects]]
   from = "/*"
