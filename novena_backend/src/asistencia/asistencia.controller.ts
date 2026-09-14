@@ -1,0 +1,116 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
+import { AsistenciaService } from './asistencia.service';
+import { CreateAsistenciaDto, UpdateAsistenciaDto } from './dto';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { User } from '../auth/entities/user.entity';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { Auth } from '../auth/decorators';
+import { ValidRoles } from '../auth/interfaces/valid-roles';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+
+@ApiTags('Asistencias')
+@Controller('asistencias')
+@ApiBearerAuth('JWT-auth')
+export class AsistenciaController {
+  constructor(private readonly asistenciaService: AsistenciaService) {}
+
+  @Post()
+  @Auth(ValidRoles.admin, ValidRoles.apuntador)
+  @ApiOperation({ summary: 'Crear un nuevo registro de asistencia' })
+  @ApiResponse({
+    status: 201,
+    description: 'Asistencia creada exitosamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'El niño ya tiene un registro de asistencia. Use el endpoint de actualización para modificar la asistencia existente.',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'El niño ya tiene un registro de asistencia registrado' },
+        error: { type: 'string', example: 'Asistencia ya existe' },
+        details: {
+          type: 'object',
+          properties: {
+            kidId: { type: 'number', example: 1 },
+            nombre: { type: 'string', example: 'Juan Carlos Pérez García' },
+            asistenciaId: { type: 'number', example: 5 },
+            message: { type: 'string', example: 'Para modificar la asistencia, use el endpoint PATCH /api/asistencias/:id' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Niño no encontrado',
+  })
+  create(
+    @Body() createAsistenciaDto: CreateAsistenciaDto,
+    @GetUser() user: User,
+  ) {
+    return this.asistenciaService.create(createAsistenciaDto, user);
+  }
+
+  @Get()
+  @Auth(ValidRoles.admin, ValidRoles.apuntador)
+  @ApiOperation({
+    summary: 'Obtener todos los registros de asistencia',
+    description: 'Soporta paginación (limit, offset), búsqueda por parámetro q (nombre o edad del niño) y filtro por kidId',
+  })
+  @ApiQuery({
+    name: 'kidId',
+    required: false,
+    type: Number,
+    description: 'Filtrar asistencias por ID de niño',
+  })
+  async findAll(
+    @Query() paginationDto: PaginationQueryDto,
+    @Query('kidId') kidId?: string,
+  ) {
+    if (kidId) {
+      const asistencia = await this.asistenciaService.findByKidId(parseInt(kidId, 10));
+      if (!asistencia) {
+        return { data: null, message: 'El niño no tiene registro de asistencia' };
+      }
+      return { data: asistencia };
+    }
+    return this.asistenciaService.findAll(paginationDto);
+  }
+
+  @Get(':id')
+  @Auth(ValidRoles.admin, ValidRoles.apuntador)
+  @ApiOperation({ summary: 'Obtener un registro de asistencia por ID' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.asistenciaService.findOne(id);
+  }
+
+  @Patch(':id')
+  @Auth(ValidRoles.admin, ValidRoles.apuntador)
+  @ApiOperation({ summary: 'Actualizar un registro de asistencia' })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateAsistenciaDto: UpdateAsistenciaDto,
+    @GetUser() user: User,
+  ) {
+    return this.asistenciaService.update(id, updateAsistenciaDto, user);
+  }
+
+  @Delete(':id')
+  @Auth(ValidRoles.admin)
+  @ApiOperation({ summary: 'Eliminar un registro de asistencia' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.asistenciaService.remove(id);
+  }
+}
+
